@@ -4,7 +4,7 @@ import loginRoute from "./login.js";
 import checkTokenRoute from "./checktoken.js";
 import { v2 as cloudinary } from "cloudinary";
 
-// Konfigurasi Cloudinary (kalau kamu pakai upload)
+// Konfigurasi Cloudinary (opsional)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -13,19 +13,19 @@ cloudinary.config({
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "10mb" })); // agar bisa kirim base64 gambar
+app.use(express.json({ limit: "10mb" }));
 
 // === ROUTES LOGIN & TOKEN ===
-app.use("/api/login", loginRoute);
-app.use("/api/checkToken", checkTokenRoute);
+// ❗ Hapus “/api” karena sudah otomatis ditangani oleh folder “api/”
+app.use("/login", loginRoute);
+app.use("/checkToken", checkTokenRoute);
 
 // === ROUTE UPLOAD GAMBAR ===
-app.post("/api/upload", async (req, res) => {
+app.post("/upload", async (req, res) => {
   try {
     const { image } = req.body;
     if (!image) return res.status(400).json({ error: "Gambar tidak ditemukan" });
 
-    // Upload ke Cloudinary
     const uploadRes = await cloudinary.uploader.upload(image, {
       folder: "skb-carousel",
     });
@@ -42,5 +42,5 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend SKB aktif 🚀" });
 });
 
-// === EXPORT KE VERCEL ===
+// === EXPORT UNTUK VERCEL ===
 export default app;
