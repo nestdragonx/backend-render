@@ -44,3 +44,9 @@ app.get("/", (req, res) => {
 
 // === EXPORT UNTUK VERCEL ===
 export default app;
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
