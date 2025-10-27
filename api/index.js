@@ -1,32 +1,46 @@
-const express = require("express");
-const cors = require("cors");
-const cloudinary = require("cloudinary").v2;
-const app = express();
+import express from "express";
+import cors from "cors";
+import loginRoute from "./login.js";
+import checkTokenRoute from "./checktoken.js";
+import { v2 as cloudinary } from "cloudinary";
 
-app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-
-// Konfigurasi Cloudinary dari environment variables
+// Konfigurasi Cloudinary (kalau kamu pakai upload)
 cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-app.get("/", (req, res) => {
-  res.send("✅ Backend aktif di Vercel!");
-});
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: "10mb" })); // agar bisa kirim base64 gambar
 
-app.post("/upload", async (req, res) => {
+// === ROUTES LOGIN & TOKEN ===
+app.use("/api/login", loginRoute);
+app.use("/api/checkToken", checkTokenRoute);
+
+// === ROUTE UPLOAD GAMBAR ===
+app.post("/api/upload", async (req, res) => {
   try {
-    const fileStr = req.body.image;
-    const result = await cloudinary.uploader.upload(fileStr, { folder: "uploads" });
-    res.json({ url: result.secure_url });
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: "Gambar tidak ditemukan" });
+
+    // Upload ke Cloudinary
+    const uploadRes = await cloudinary.uploader.upload(image, {
+      folder: "skb-carousel",
+    });
+
+    res.json({ success: true, url: uploadRes.secure_url });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Upload error:", err);
+    res.status(500).json({ success: false, error: "Gagal upload" });
   }
 });
 
-// ❌ JANGAN pakai app.listen() di Vercel!
-// ✅ Ganti dengan export handler:
-module.exports = app;
+// === ROUTE DEFAULT ===
+app.get("/", (req, res) => {
+  res.json({ message: "Backend SKB aktif 🚀" });
+});
+
+// === EXPORT KE VERCEL ===
+export default app;
