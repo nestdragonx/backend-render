@@ -63,19 +63,5 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend SKB aktif 🚀" });
 });
 
-// --- Export ke Vercel ---
+// === Export untuk Vercel ===
 export default app;
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// --- Mulai server ---
-if (process.env.NODE_ENV !== "test") {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server berjalan di http://localhost:${port}`);
-  });
-}
